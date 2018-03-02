@@ -9,26 +9,40 @@ import BC_state_etc as BC
 
 def makeMove(currentState, currentRemark, timelimit):
     start_time = time.time()
-    print
-
-    # Compute the new state for a move.
-    # This is a placeholder that just copies the current state.
-    newState = BC.BC_state(currentState.board)
-
-
-    # Fix up whose turn it will be.
-    newState.whose_move = 1 - currentState.whose_move
 
     # Construct a representation of the move that goes from the
     # currentState to the newState.
     # Here is a placeholder in the right format but with made-up
     # numbers:
-    move = ((6, 4), (3, 4))
+    available_moves = available_moves(currentState)
+    best_move = available_moves[0]
+    state_to_return = move(currentState, best_move)
+    for move in available_moves:
+        next_state = move(newState, move)
+        if staticEval(next_state) > staticEval(state_to_return):
+            best_move = move
+            state_to_return = next_state
 
     # Make up a new remark
     newRemark = "I'll think harder in some future game. Here's my move"
 
-    return [[move, newState], newRemark]
+    return [[best_move, state_to_return], newRemark]
+
+def move(currentState, move):
+    next_state = BC.BC_state(currentState)
+    next_state.whose_move = 1 - currentState.whose_move
+
+    start, end = move
+    piece = next_state.board[start[0]][start[1]]
+    next_state.board[start[0]][start[1]] = 0
+    next_state.board[end[0]][end[1]] = piece
+    remove_captured(next_state)
+    return next_state
+
+def available_moves(currentState):
+    for row in currentState.board:
+
+    return [((0,1),(2,2))]
 
 def nickname():
     return "Winner"
