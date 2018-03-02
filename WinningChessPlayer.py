@@ -2,13 +2,17 @@
 
 '''
 
+import time
 import BC_state_etc as BC
 
 def makeMove(currentState, currentRemark, timelimit):
+    start_time = time.time()
+    print
 
     # Compute the new state for a move.
     # This is a placeholder that just copies the current state.
     newState = BC.BC_state(currentState.board)
+
 
     # Fix up whose turn it will be.
     newState.whose_move = 1 - currentState.whose_move
@@ -25,10 +29,17 @@ def makeMove(currentState, currentRemark, timelimit):
     return [[move, newState], newRemark]
 
 def nickname():
-    return "Newman"
+    return "Winner"
 
 def introduce():
-    return "I'm Newman Barry, a newbie Baroque Chess agent."
+    return "I'm Winner. I am decent at playing chess."
 
 def prepare(player2Nickname):
     pass
+
+
+if __name__ == '__main__':
+   # Create the currentState and ask this agent to make a moves
+   currentState = BC.BC_state()
+   timelimit = 1000
+   makeMove(currentState, "First Move", timelimit)

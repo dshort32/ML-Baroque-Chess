@@ -20,7 +20,7 @@ Within R1, pieces are represented using initials; e.g., 'c', 'C', 'p', etc.
 Within R2, pieces are represented using integers 1 through 14.
 
 We are following these rules:
- 
+
   No leaper double jumps.
       SOME PEOPLE CONSIDER IT DETRIMENTAL TO THE GAME TO ALLOW A LEAPER
       TO MAKE MORE THAN ONE JUMP IN ONE TURN, AND IT INCREASES THE
@@ -33,7 +33,7 @@ We are following these rules:
   Pincers can pinch using any friendly piece as their partners, not just other pincers.
 
   An imitator can imitate at most one piece during a move.
- 
+
 '''
 BLACK = 0
 WHITE = 1
@@ -121,7 +121,7 @@ class BC_state:
         return True
       except Exception as e:
         return False
-      
+
 def test_starting_board():
   init_state = BC_state(INITIAL, WHITE)
   print(init_state)
