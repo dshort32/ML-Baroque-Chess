@@ -39,10 +39,32 @@ def move(currentState, move):
     remove_captured(next_state)
     return next_state
 
+# NEED MORE WORK
 def available_moves(currentState):
-    for row in currentState.board:
+    # Copy the state and the board
+    initialStateCopied = BC.BC_state(currentstate)
+    board = [row[:] for row in currentState.board]
+    available_move_list = []
+    for row in board:
+        for piece in row:
+            if piece == BLACK_KING or piece == WHITE_KING:
 
-    return [((0,1),(2,2))]
+            elif piece == BLACK_PINCER or piece == WHITE_PINCER:
+
+    return available_move_list
+
+# NEED MORE WORK
+def recursive_find_moves(board, position, delta_i, delta_j, available_move_list):
+    curRow, curCol = position
+    piece = board[curRow][curCol]
+    nextRow = curRow + delta_i
+    nextCol = curCol + delta_j
+    if (nextRow >= 0 or nextRow < len(board) or nextCol >= 0 or nextCol < len(board[0]))\
+        and (board[nextRow][nextCol] == 0):
+
+            recursive_find_moves()
+            available_move_list.append((i, j))
+
 
 def nickname():
     return "Winner"
@@ -65,21 +87,7 @@ def staticEval(state):
                 static_val -= 1
     return static_val if turn == BC.WHITE else -static_val
 
-def available_moves(state, position):
-    '''
-    board = [row[:] for row in state.board]
-    row, col = position
-    piece = board[row][col]
-    available_move_list = []
-    if piece == BLACK_KING or piece == WHITE_KING:
-        for i in range(row - 1, row + 2):
-            for j in range(col - 1, col + 2):
-                if (i >= 0 or i < len(board) or j >= 0 or j < len(board[0]))\
-                    and (board[i][j] == 0 or isKingInDanger): # inbounds and (empty or can take without being in danger)
-                    available_move_list.append((i, j))
-    elif piece == BLACK_PINCER or piece == WHITE_PINCER:
-    '''
-
+# MIGHT NEED FOR ABOVE METHOD
 def recursive_available_moves(board, position, delta_i, delta_j, available_move_list):
     '''
     row, col = position
