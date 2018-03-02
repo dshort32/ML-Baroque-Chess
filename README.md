@@ -14,7 +14,7 @@ evaluation functions.
 
 ## References
 
-Please read [Wikipedia article on Baroque Chess](https://en.wikipedia.org/wiki/Baroque_chess) for details on how the game of Baroque Chess is played. Also, read [Wrong with Ultima](http://www.logicmazes.com/games/wgr.html) if you're interested in what
+Please read [Wikipedia article on Baroque Chess](https://en.wikipedia.org/wiki/Baroque_chess) for details on how the game of Baroque Chess is played. Also, read [What's Wrong with Ultima](http://www.logicmazes.com/games/wgr.html) if you're interested in what
 Robert Abbott the creator of the game had to say about this game.
 
 ## Authors
