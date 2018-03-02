@@ -1,18 +1,16 @@
-'''WinningChessPlayer.py
+'''CrazyChessDude.py
+This player just chooses the first option that is possible without thinking
+about which move is the best.
 
 '''
 
-import time
 import BC_state_etc as BC
 
 def makeMove(currentState, currentRemark, timelimit):
-    start_time = time.time()
-    print
 
     # Compute the new state for a move.
     # This is a placeholder that just copies the current state.
     newState = BC.BC_state(currentState.board)
-
 
     # Fix up whose turn it will be.
     newState.whose_move = 1 - currentState.whose_move
@@ -21,28 +19,20 @@ def makeMove(currentState, currentRemark, timelimit):
     # currentState to the newState.
     # Here is a placeholder in the right format but with made-up
     # numbers:
-    move = ((6, 4), (3, 4))
+    move = ((1, 2), (3, 2))
 
     # Make up a new remark
-    newRemark = "I'll think harder in some future game. Here's my move"
-
+    newRemark = "I'm not very good at this game yet. I am not moving, which isn't legal, but... whatever."
     return [[move, newState], newRemark]
 
 def nickname():
-    return "Winner"
+    return "CrazyDude"
 
 def introduce():
-    return "I'm Winner. I am decent at playing chess."
+    return "I'm CrazyChessDude.  I mostly just move whatever piece is able to move."
 
 def prepare(player2Nickname):
     pass
 
 def staticEval(state):
     return
-
-
-if __name__ == '__main__':
-   # Create the currentState and ask this agent to make a moves
-   currentState = BC.BC_state()
-   timelimit = 1000
-   makeMove(currentState, "First Move", timelimit)
