@@ -42,6 +42,9 @@ def makeMove(currentState, currentRemark, timelimit):
     else :
         move = moveOther(board, locations, piece, piece_loc)
 
+
+    move = ((6, 4), (3, 4))
+
     # Make up a new remark
     newRemark = "I'll think harder in some future game. Here's my move"
 
@@ -92,9 +95,3 @@ def introduce():
 
 def prepare(player2Nickname):
     pass
-
-if __name__ == '__main__':
-    if "a" < "b":
-        print("true")
-    else:
-        print("false")
