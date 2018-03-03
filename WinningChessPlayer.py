@@ -1,4 +1,3 @@
-
 '''WinningChessPlayer.py
 
 '''
@@ -16,6 +15,7 @@ def makeMove(currentState, currentRemark, timelimit):
     # Here is a placeholder in the right format but with made-up
     # numbers:
     '''
+    # Author: Aaron
     available_moves = available_moves(currentState)
     best_move = available_moves[0]
     state_to_return = move(currentState, best_move)
@@ -60,7 +60,7 @@ def makeMove(currentState, currentRemark, timelimit):
     # return [[best_move, state_to_return], newRemark]
 
 
-
+# Author: Daniel
 def moveOther(board, locations, piece, piece_location) :
     directions = []
     piece_row = piece_location[0]
@@ -87,6 +87,7 @@ def moveOther(board, locations, piece, piece_location) :
     new_loc = locations[random.randint(0, len(locations) - 1)]
     return piece_location, new_loc
 
+# Author: Daniel
 def movePawn(board, piece_location, direction) :
     locations = []
     current_loc = piece_location
@@ -98,6 +99,7 @@ def movePawn(board, piece_location, direction) :
     new_loc = locations[random.randint(0, len(locations) - 1)]
     return piece_location, new_loc
 
+# Author: Aaron
 def move(currentState, move):
     next_state = BC.BC_state(currentState)
     next_state.whose_move = 1 - currentState.whose_move
@@ -109,6 +111,7 @@ def move(currentState, move):
     remove_captured(next_state)
     return next_state
 
+# Author: Aaron
 # NEED MORE WORK
 def available_moves(currentState):
     # Copy the state and the board
@@ -123,6 +126,8 @@ def available_moves(currentState):
 
     return available_move_list
 
+
+# Author: Aaron
 # NEED MORE WORK
 def recursive_find_moves(board, position, delta_i, delta_j, available_move_list):
     curRow, curCol = position
@@ -145,6 +150,8 @@ def introduce():
 def prepare(player2Nickname):
     pass
 
+
+# Author: Aaron
 def staticEval(state):
     '''An enemy piece is -1 and my own piece is +1'''
     turn = state.whose_move
@@ -157,6 +164,8 @@ def staticEval(state):
                 static_val -= 1
     return static_val if turn == BC.WHITE else -static_val
 
+
+# Author: Aaron
 # MIGHT NEED FOR ABOVE METHOD
 def recursive_available_moves(board, position, delta_i, delta_j, available_move_list):
     '''
