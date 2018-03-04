@@ -49,7 +49,6 @@ def remove_captured(state_to_update, move):
     '''do nothing'''
 
 # Author: Aaron
-# NEED MORE WORK
 def available_moves(currentState):
     # Copy the state and the board
     turn = currentState.whose_move
