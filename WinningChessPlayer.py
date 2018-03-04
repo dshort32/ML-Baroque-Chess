@@ -46,7 +46,71 @@ def move_piece(currentState, move, capture_mode=True):
 
 # NEEDS IMPLEMENTATION
 def remove_captured(state_to_update, move):
-    '''do nothing'''
+    board = state_to_update.board
+    start, end = move
+    moved_piece = board[end[0]][end[1]]
+    player = BC.who(moved_piece)
+    opponent = 1 - player
+    removed_pieces = []
+    if moved_piece == BC.BLACK_WITHDRAWER or moved_piece == BC.WHITE_WITHDRAWER:
+        delta_i = end[0] - start[0]
+        delta_j = end[1] - start[1]
+        target_i = 0 if delta_i == 0 else start[0] - (delta_i) / abs(delta_i)
+        target_j = 0 if delta_j == 0 else start[1] - (delta_j) / abs(delta_j)
+        removed_location = target_i, target_j
+        if inbounds(state_to_update, removed_location)\
+            and BC.who(board[target_i][target_j]) == opponent\
+            and board[target_i][target_j] != 0:
+            removed_piece = board[target_i][target_j]
+            board[target_i][target_j] = 0
+            removed_pieces.append((removed_piece, removed_location))
+    elif moved_piece == BC.BLACK_PINCER or moved_piece == BC.WHITE_PINCER:
+        for pos in [(1,0),(-1,0),(0,1),(0,-1)]:
+            target_i = end[0] + pos[0]
+            target_j = end[1] + pos[1]
+            pos_across= end[0] + 2 * pos[0], end[1] + 2 * pos[1]
+            removed_location = target_i, target_j
+            if inbounds(state_to_update, removed_location)\
+                and inbounds(state_to_update, pos_across)\
+                and BC.who(board[target_i][target_j]) == opponent\
+                and board[target_i][target_j] != 0\
+                and BC.who(board[pos_across[0]][pos_across[1]]) == player:
+                removed_piece = board[target_i][target_j]
+                board[target_i][target_j] = 0
+                removed_pieces.append((removed_piece, removed_location))
+    elif moved_piece == BC.BLACK_COORDINATOR or moved_piece == BC.COORDINATOR:
+        kingPos = (0, 0)
+        for i, row in board:
+            for j, piece in row:
+                if (piece == BC.BLACK_KING or piece == BC.WHITE_KING)\
+                    and BC.who(piece) == player:
+                    kingPos = (i,j)
+                    break;
+
+        # ERROR MUST BE FIXED
+        for target_pos in [(end[0], kingPos[1]), (kingPos[0], end[1])]:
+            if BC.who(board[target_pos[0]][target_pos[1]]) == opponent:
+                removed_piece = board[[target_pos[0]][target_pos[1]]
+                print(str(0))
+                board[target_pos[0]][target_pos[1]] = 0
+                removed_pieces.append((removed_piece, removed_location))
+    elif moved_piece == BC.BLACK_LEAPER or moved_piece == BC.LEAPER:
+        # HAVE NOT BEEN TESTED
+        delta_i = end[0] - start[0]
+        delta_j = end[1] - start[1]
+        target_i = 0 if delta_i == 0 else end[0] - (delta_i) / abs(delta_i)
+        target_j = 0 if delta_j == 0 else end[1] - (delta_j) / abs(delta_j)
+        removed_location = target_i, target_j
+        if inbounds(state_to_update, removed_location)\
+            and BC.who(board[target_i][target_j]) == opponent\
+            and board[target_i][target_j] != 0:
+            removed_piece = board[target_i][target_j]
+            board[target_i][target_j] = 0
+            removed_pieces.append((removed_piece, removed_location))
+    elif moved_piece == BC.BLACK_IMITATOR or moved_piece == BC.IMITATOR:
+        '''shit'''
+
+    return removed_pieces
 
 # Author: Aaron
 def available_moves(currentState):
@@ -60,7 +124,7 @@ def available_moves(currentState):
             # If not your piece or frozen, don't do anything
             if (BC.who(piece) == BC.BLACK and turn == BC.WHITE)\
                 or (BC.who(piece) == BC.WHITE and turn == BC.BLACK)\
-                or isFrozen(initialStateCopied, currPos):
+                or isFrozen(initialStateCopied, currPos) or (piece == 0):
                 continue
             if piece == BC.BLACK_KING or piece == BC.WHITE_KING:
                 # Adding King's moves
@@ -164,25 +228,33 @@ def staticEval(state):
 
 board = BC.parse('''
 c l i w k i l f
-p p p p p p p p
 - - - - - - - -
 - - - - - - - -
-p - - - - - - -
-- - p - - - - -
-- i - - - - - -
-F p p - - - - -
+- - - - - - - -
+- - C - w - - -
+- - - - - - - -
+- - p - p - - -
+- - p - K - - -
 ''')
+
+def basic_movement_test():
+    currentState = BC.BC_state(board, BC.BLACK)
+    print(currentState)
+    moves = available_moves(currentState)
+    print(len(moves))
+    for m in moves:
+        start, end = m
+        piece = BC.CODE_TO_INIT[currentState.board[start[0]][start[1]]]
+        print("p: "+str(piece)+" s: "+str(start)+" t: "+str(end))
 
 if __name__ == '__main__':
    # Create the currentState and ask this agent to make a moves
+
    currentState = BC.BC_state(board, BC.WHITE)
    print(currentState)
-   moves = available_moves(currentState)
-   print(len(moves))
-   for m in moves:
-       start, end = m
-       piece = BC.CODE_TO_INIT[currentState.board[start[0]][start[1]]]
-       print("p: "+str(piece)+" s: "+str(start)+" t: "+str(end))
+   move = ((4,0), (4, 2))
+   remove_captured(currentState, move)
+   print(currentState)
 
    # timelimit = 1000
    # state_info, utterance = makeMove(currentState, "First Move", timelimit)
