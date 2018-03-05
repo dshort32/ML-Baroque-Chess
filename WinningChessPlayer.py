@@ -55,8 +55,8 @@ def remove_captured(state_to_update, move):
     if moved_piece == BC.BLACK_WITHDRAWER or moved_piece == BC.WHITE_WITHDRAWER:
         delta_i = end[0] - start[0]
         delta_j = end[1] - start[1]
-        target_i = 0 if delta_i == 0 else start[0] - (delta_i) / abs(delta_i)
-        target_j = 0 if delta_j == 0 else start[1] - (delta_j) / abs(delta_j)
+        target_i = 0 if delta_i == 0 else start[0] - int((delta_i) / abs(delta_i))
+        target_j = 0 if delta_j == 0 else start[1] - int((delta_j) / abs(delta_j))
         removed_location = target_i, target_j
         if inbounds(state_to_update, removed_location)\
             and BC.who(board[target_i][target_j]) == opponent\
@@ -78,28 +78,30 @@ def remove_captured(state_to_update, move):
                 removed_piece = board[target_i][target_j]
                 board[target_i][target_j] = 0
                 removed_pieces.append((removed_piece, removed_location))
-    elif moved_piece == BC.BLACK_COORDINATOR or moved_piece == BC.COORDINATOR:
+    elif moved_piece == BC.BLACK_COORDINATOR or moved_piece == BC.WHITE_COORDINATOR:
         kingPos = (0, 0)
-        for i, row in board:
-            for j, piece in row:
+        for i, row in enumerate(board):
+            for j, piece in enumerate(row):
                 if (piece == BC.BLACK_KING or piece == BC.WHITE_KING)\
                     and BC.who(piece) == player:
                     kingPos = (i,j)
                     break;
 
         # ERROR MUST BE FIXED
+        '''
         for target_pos in [(end[0], kingPos[1]), (kingPos[0], end[1])]:
             if BC.who(board[target_pos[0]][target_pos[1]]) == opponent:
                 removed_piece = board[[target_pos[0]][target_pos[1]]
                 print(str(0))
                 board[target_pos[0]][target_pos[1]] = 0
                 removed_pieces.append((removed_piece, removed_location))
-    elif moved_piece == BC.BLACK_LEAPER or moved_piece == BC.LEAPER:
+        '''
+    elif moved_piece == BC.BLACK_LEAPER or moved_piece == BC.WHITE_LEAPER:
         # HAVE NOT BEEN TESTED
         delta_i = end[0] - start[0]
         delta_j = end[1] - start[1]
-        target_i = 0 if delta_i == 0 else end[0] - (delta_i) / abs(delta_i)
-        target_j = 0 if delta_j == 0 else end[1] - (delta_j) / abs(delta_j)
+        target_i = 0 if delta_i == 0 else end[0] - int((delta_i) / abs(delta_i))
+        target_j = 0 if delta_j == 0 else end[1] - int((delta_j) / abs(delta_j))
         removed_location = target_i, target_j
         if inbounds(state_to_update, removed_location)\
             and BC.who(board[target_i][target_j]) == opponent\
@@ -107,7 +109,7 @@ def remove_captured(state_to_update, move):
             removed_piece = board[target_i][target_j]
             board[target_i][target_j] = 0
             removed_pieces.append((removed_piece, removed_location))
-    elif moved_piece == BC.BLACK_IMITATOR or moved_piece == BC.IMITATOR:
+    elif moved_piece == BC.BLACK_IMITATOR or moved_piece == BC.WHITE_IMITATOR:
         '''shit'''
 
     return removed_pieces
@@ -117,6 +119,7 @@ def available_moves(currentState):
     # Copy the state and the board
     turn = currentState.whose_move
     initialStateCopied = BC.BC_state(currentState.board, turn)
+    board = initialStateCopied.board
     available_move_list = []
     for i, row in enumerate(board):
         for j, piece in enumerate(row):
@@ -226,35 +229,220 @@ def staticEval(state):
                 static_val -= 1
     return static_val if turn == BC.WHITE else -static_val
 
-board = BC.parse('''
-c l i w k i l f
+t0 = (BC.parse('''
+- - - - - - - -
+- - - - - - p p
+- - - - - - - i
+- - - - - - - -
+- - - k - - - -
+- - - W - - - -
+- - - - L K - -
+- - - - - - - -
+'''), 1, "Capture : Withdrawer", ((2,6),(5,3)))
+
+t1 = (BC.parse('''
+- - - - - - - -
+- - - k - - - -
+- - - P - C - -
+- - - p w - - -
+- K f P - - - -
+- - - i - - l -
+- - - - - - P -
+- - - W - - - -
+'''), 2, "Capture : Pincer", ((4,6),(4,3)))
+
+t2 = (BC.parse('''
+- - - - - - - -
+- - - - - - - -
+- - l - i C - -
+- - - - - - k -
+- - - - - - - -
+- - - - - P - -
+- - K p - f - -
+- - - - - - - -
+'''), 2, "Capture : Coordinator", ((4,3),(2,5)))
+
+t3 = (BC.parse('''
 - - - - - - - -
 - - - - - - - -
 - - - - - - - -
-- - C - w - - -
 - - - - - - - -
-- - p - p - - -
-- - p - K - - -
-''')
+- - - - - - - -
+- - - p - - - -
+- - L - - - - -
+- - - - - - - -
+'''), 1, "Capture : Leaper", ((4,4),(6,2)))
+
+t4 = (BC.parse('''
+- - - - - - - -
+- - - - - - p w
+- - - - - - - i
+- - - - - - - -
+- - - k - - - -
+- - - I - - - -
+- - - - L K - -
+- - - - - - - -
+'''), 1, "Capture : Imitator1", ((2,6), (5,3)))
+
+t5 = (BC.parse('''
+- - - - - - - -
+- - - - - - - -
+- - - - - - - -
+- - - - - - - -
+- - - - - - - -
+- - - l - - - -
+- - I - - - - -
+- - - - - - - -
+'''), 1, "Capture : Imitator2", ((4,4),(6,2)))
+
+t11 = (BC.parse('''
+- - - - - - - -
+- - - k - - - -
+- - - P - C - -
+- - - p w - - -
+- K p I - - - -
+- - - p - - l -
+- - - W - - P -
+- - - - - - - -
+'''), 3, "Capture : Imitator3", ((4,6),(4,3)))
+
+t12 = (BC.parse('''
+- - - - - - - -
+- - - - - - - -
+- - i - p I - -
+- - - - - - k -
+- - - - - - - -
+- - - - - P - -
+- - K p - f - -
+- - - - - - - -
+'''), 1, "Capture : Imitator4", ((4,3),(2,5)))
+
+def basic_capture_test():
+    currentState = BC.BC_state(t0[0], BC.WHITE)
+    captured = remove_captured(currentState, t0[3])
+    check(t0, len(captured))
+
+    currentState = BC.BC_state(t1[0], BC.WHITE)
+    captured = remove_captured(currentState, t1[3])
+    check(t1, len(captured))
+
+    currentState = BC.BC_state(t2[0], BC.WHITE)
+    captured = remove_captured(currentState, t2[3])
+    check(t2, len(captured))
+
+    currentState = BC.BC_state(t3[0], BC.WHITE)
+    captured = remove_captured(currentState, t3[3])
+    check(t3, len(captured))
+
+    '''
+    currentState = BC.BC_state(t4[0], BC.WHITE)
+    captured = remove_captured(currentState, t4[3])
+    check(t4, len(captured))
+
+    currentState = BC.BC_state(t5[0], BC.WHITE)
+    captured = remove_captured(currentState, t5[3])
+    check(t5, len(captured))
+
+    currentState = BC.BC_state(t11[0], BC.WHITE)
+    captured = remove_captured(currentState, t11[3])
+    check(t11, len(captured))
+
+    currentState = BC.BC_state(t12[0], BC.WHITE)
+    captured = remove_captured(currentState, t12[3])
+    check(t12, len(captured))
+    '''
+
+t6 = (BC.parse('''
+- - - - - - - -
+- - - - - - - -
+- - - - - - - -
+- - - - - - - -
+- - - p - - - -
+p - p - - - - -
+p - - - - - - -
+L - - - - p - -
+'''), 6, "Movement: Leaper")
+
+t7 = (BC.parse('''
+- - - - - - - -
+- - - - - - - -
+- - - - - - - -
+- - - - - - - -
+- - - - - - - -
+- - - K - - - -
+- - - - - - - -
+- - - - - - - -
+'''), 8, "Movement: King")
+
+t8 = (BC.parse('''
+- - - - - - - -
+- - - - - - - -
+- - - - - - - -
+- - - - - - - -
+- - - - - - - -
+- - - - - - - -
+- f - - - - - -
+W - - - - - - -
+'''), 0, "Movement: Freezer")
+
+t9 = (BC.parse('''
+- - - - - - - -
+- - - - - - - -
+- - - - - - - -
+- - - - - - - -
+- - - - - - - -
+- - - - - - - -
+- i - - - - - -
+F - - - - - - -
+'''), 0, "Movement: Imitator")
+
+t10 = (BC.parse('''
+- - - p - - - -
+p - - - - - - -
+- - - - - - - -
+- - - - - - - -
+- p - W - - - -
+- - - - - - - -
+- - - - - - - -
+p - - - - - - -
+'''), 22, "Movement: Withdrawer")
+
+def check(test, actual_val):
+    if test[1] == actual_val:
+        print(test[2]+" - success")
+    else:
+        print(test[2]+" - FAIL found: "+ str(actual_val)+" should be: "+str(test[1]))
 
 def basic_movement_test():
-    currentState = BC.BC_state(board, BC.BLACK)
-    print(currentState)
+    # Leaper
+    currentState = BC.BC_state(t6[0], BC.WHITE)
     moves = available_moves(currentState)
-    print(len(moves))
-    for m in moves:
-        start, end = m
-        piece = BC.CODE_TO_INIT[currentState.board[start[0]][start[1]]]
-        print("p: "+str(piece)+" s: "+str(start)+" t: "+str(end))
+    check(t6, len(moves))
+
+    # King
+    currentState = BC.BC_state(t7[0], BC.WHITE)
+    moves = available_moves(currentState)
+    check(t7, len(moves))
+
+    # Freezer
+    currentState = BC.BC_state(t8[0], BC.WHITE)
+    moves = available_moves(currentState)
+    check(t8, len(moves))
+
+    # Imitator
+    currentState = BC.BC_state(t9[0], BC.WHITE)
+    moves = available_moves(currentState)
+    check(t9, len(moves))
+
+    # Withdrawer
+    currentState = BC.BC_state(t10[0], BC.WHITE)
+    moves = available_moves(currentState)
+    check(t10, len(moves))
 
 if __name__ == '__main__':
    # Create the currentState and ask this agent to make a moves
-
-   currentState = BC.BC_state(board, BC.WHITE)
-   print(currentState)
-   move = ((4,0), (4, 2))
-   remove_captured(currentState, move)
-   print(currentState)
+   basic_capture_test()
+   basic_movement_test()
 
    # timelimit = 1000
    # state_info, utterance = makeMove(currentState, "First Move", timelimit)
