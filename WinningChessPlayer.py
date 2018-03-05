@@ -43,7 +43,6 @@ def move_piece(currentState, move, capture_mode=True):
         remove_captured(next_state, move)
     return next_state
 
-
 # NEEDS IMPLEMENTATION
 def remove_captured(state_to_update, move):
     board = state_to_update.board
@@ -52,7 +51,8 @@ def remove_captured(state_to_update, move):
     player = BC.who(moved_piece)
     opponent = 1 - player
     removed_pieces = []
-    if moved_piece == BC.BLACK_WITHDRAWER or moved_piece == BC.WHITE_WITHDRAWER:
+    if moved_piece == BC.BLACK_WITHDRAWER or moved_piece == BC.WHITE_WITHDRAWER\
+        or moved_piece == BC.BLACK_IMITATOR or moved_piece == BC.WHITE_IMITATOR:
         delta_i = end[0] - start[0]
         delta_j = end[1] - start[1]
         target_i = 0 if delta_i == 0 else start[0] - int((delta_i) / abs(delta_i))
@@ -60,11 +60,15 @@ def remove_captured(state_to_update, move):
         removed_location = target_i, target_j
         if inbounds(state_to_update, removed_location)\
             and BC.who(board[target_i][target_j]) == opponent\
-            and board[target_i][target_j] != 0:
+            and board[target_i][target_j] != 0\
+            and (moved_piece == BC.BLACK_WITHDRAWER or moved_piece == BC.WHITE_WITHDRAWER\
+                or (moved_piece == BC.BLACK_IMITATOR and board[target_i][target_j] == BC.WHITE_WITHDRAWER)
+                or (moved_piece == BC.WHITE_IMITATOR and board[target_i][target_j] == BC.BLACK_WITHDRAWER)):
             removed_piece = board[target_i][target_j]
             board[target_i][target_j] = 0
             removed_pieces.append((removed_piece, removed_location))
-    elif moved_piece == BC.BLACK_PINCER or moved_piece == BC.WHITE_PINCER:
+    if moved_piece == BC.BLACK_PINCER or moved_piece == BC.WHITE_PINCER\
+        or moved_piece == BC.BLACK_IMITATOR or moved_piece == BC.WHITE_IMITATOR:
         for pos in [(1,0),(-1,0),(0,1),(0,-1)]:
             target_i = end[0] + pos[0]
             target_j = end[1] + pos[1]
@@ -74,11 +78,15 @@ def remove_captured(state_to_update, move):
                 and inbounds(state_to_update, pos_across)\
                 and BC.who(board[target_i][target_j]) == opponent\
                 and board[target_i][target_j] != 0\
-                and BC.who(board[pos_across[0]][pos_across[1]]) == player:
+                and BC.who(board[pos_across[0]][pos_across[1]]) == player\
+                and (moved_piece == BC.BLACK_PINCER or moved_piece == BC.WHITE_PINCER\
+                    or (moved_piece == BC.BLACK_IMITATOR and board[target_i][target_j] == BC.WHITE_PINCER)
+                    or (moved_piece == BC.WHITE_IMITATOR and board[target_i][target_j] == BC.BLACK_PINCER)):
                 removed_piece = board[target_i][target_j]
                 board[target_i][target_j] = 0
                 removed_pieces.append((removed_piece, removed_location))
-    elif moved_piece == BC.BLACK_COORDINATOR or moved_piece == BC.WHITE_COORDINATOR:
+    if moved_piece == BC.BLACK_COORDINATOR or moved_piece == BC.WHITE_COORDINATOR\
+        or moved_piece == BC.BLACK_IMITATOR or moved_piece == BC.WHITE_IMITATOR:
         kingPos = (0, 0)
         for i, row in enumerate(board):
             for j, piece in enumerate(row):
@@ -86,14 +94,17 @@ def remove_captured(state_to_update, move):
                     and BC.who(piece) == player:
                     kingPos = (i,j)
                     break;
-
         for target_pos in [(end[0], kingPos[1]), (kingPos[0], end[1])]:
             potential_captured_piece = board[target_pos[0]][target_pos[1]]
-            if BC.who(potential_captured_piece) == opponent and potential_captured_piece != 0:
+            if BC.who(potential_captured_piece) == opponent and potential_captured_piece != 0\
+                and (moved_piece == BC.BLACK_COORDINATOR or moved_piece == BC.WHITE_COORDINATOR\
+                    or (moved_piece == BC.BLACK_IMITATOR and board[target_pos[0]][target_pos[1]] == BC.WHITE_COORDINATOR)
+                    or (moved_piece == BC.WHITE_IMITATOR and board[target_pos[0]][target_pos[1]] == BC.BLACK_COORDINATOR)):
                 board[target_pos[0]][target_pos[1]] = 0
                 removed_pieces.append((potential_captured_piece, target_pos))
 
-    elif moved_piece == BC.BLACK_LEAPER or moved_piece == BC.WHITE_LEAPER:
+    if moved_piece == BC.BLACK_LEAPER or moved_piece == BC.WHITE_LEAPER\
+        or moved_piece == BC.BLACK_IMITATOR or moved_piece == BC.WHITE_IMITATOR:
         delta_i = end[0] - start[0]
         delta_j = end[1] - start[1]
         target_i = 0 if delta_i == 0 else end[0] - int((delta_i) / abs(delta_i))
@@ -101,12 +112,13 @@ def remove_captured(state_to_update, move):
         removed_location = target_i, target_j
         if inbounds(state_to_update, removed_location)\
             and BC.who(board[target_i][target_j]) == opponent\
-            and board[target_i][target_j] != 0:
+            and board[target_i][target_j] != 0\
+            and (moved_piece == BC.BLACK_LEAPER or moved_piece == BC.WHITE_LEAPER\
+                or (moved_piece == BC.BLACK_IMITATOR and board[target_i][target_j] == BC.WHITE_LEAPER)
+                or (moved_piece == BC.WHITE_IMITATOR and board[target_i][target_j] == BC.BLACK_LEAPER)):
             removed_piece = board[target_i][target_j]
             board[target_i][target_j] = 0
             removed_pieces.append((removed_piece, removed_location))
-    elif moved_piece == BC.BLACK_IMITATOR or moved_piece == BC.WHITE_IMITATOR:
-        '''shit'''
 
     return removed_pieces
 
@@ -285,11 +297,11 @@ t5 = (BC.parse('''
 - - - - - - - -
 - - - - - - - -
 - - - - - - - -
+- - - I p P c -
 - - - - - - - -
-- - - l - - - -
-- - I - - - - -
 - - - - - - - -
-'''), 1, "Capture : Imitator2", ((4,4),(6,2)))
+w - - c - - K -
+'''), 4, "Capture : Imitator2", ((6,1),(4,3)))
 
 t11 = (BC.parse('''
 - - - - - - - -
@@ -305,7 +317,7 @@ t11 = (BC.parse('''
 t12 = (BC.parse('''
 - - - - - - - -
 - - - - - - - -
-- - i - p I - -
+- - c - p I - -
 - - - - - - k -
 - - - - - - - -
 - - - - - P - -
@@ -330,7 +342,6 @@ def basic_capture_test():
     captured = remove_captured(currentState, t3[3])
     check(t3, len(captured))
 
-    '''
     currentState = BC.BC_state(t4[0], BC.WHITE)
     captured = remove_captured(currentState, t4[3])
     check(t4, len(captured))
@@ -346,7 +357,6 @@ def basic_capture_test():
     currentState = BC.BC_state(t12[0], BC.WHITE)
     captured = remove_captured(currentState, t12[3])
     check(t12, len(captured))
-    '''
 
 t6 = (BC.parse('''
 - - - - - - - -
