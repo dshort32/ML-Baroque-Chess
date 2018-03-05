@@ -10,26 +10,22 @@ import BC_state_etc as BC
 def makeMove(currentState, currentRemark, timelimit):
     start_time = time.time()
 
-    # Construct a representation of the move that goes from the
-    # currentState to the newState.
-    # Here is a placeholder in the right format but with made-up
-    # numbers:
-
-    # Author: Aaron
-    available_moves = available_moves(currentState)
-    best_move = available_moves[0]
+    valid_moves = available_moves(currentState)
+    best_move = valid_moves[0]
     state_to_return = move_piece(currentState, best_move)
-    for move in available_moves:
-        next_state = move_piece(newState, move)
+    for move in valid_moves:
+        next_state = move_piece(currentState, move)
+
+        # Pick the best move in the order of static_eval function
         if staticEval(next_state) > staticEval(state_to_return):
             best_move = move
             state_to_return = next_state
-
+    newRemark = "Just taking a move"
     return [[best_move, state_to_return], newRemark]
 
-# Author: Aaron
 def move_piece(currentState, move, capture_mode=True):
-    # make copy
+    # Capture_mode is for when wanting to make moves without
+    # capturing or turning the game over to the opponent
     turn = currentState.whose_move
     next_state = BC.BC_state(currentState.board, turn)
     if capture_mode:
@@ -43,7 +39,6 @@ def move_piece(currentState, move, capture_mode=True):
         remove_captured(next_state, move)
     return next_state
 
-# NEEDS IMPLEMENTATION
 def remove_captured(state_to_update, move):
     board = state_to_update.board
     start, end = move
@@ -58,6 +53,8 @@ def remove_captured(state_to_update, move):
         target_i = 0 if delta_i == 0 else start[0] - int((delta_i) / abs(delta_i))
         target_j = 0 if delta_j == 0 else start[1] - int((delta_j) / abs(delta_j))
         removed_location = target_i, target_j
+
+        # Either Withdrawer or Imitator can remove pieces by Withdrawing
         if inbounds(state_to_update, removed_location)\
             and BC.who(board[target_i][target_j]) == opponent\
             and board[target_i][target_j] != 0\
@@ -69,11 +66,15 @@ def remove_captured(state_to_update, move):
             removed_pieces.append((removed_piece, removed_location))
     if moved_piece == BC.BLACK_PINCER or moved_piece == BC.WHITE_PINCER\
         or moved_piece == BC.BLACK_IMITATOR or moved_piece == BC.WHITE_IMITATOR:
+
+        # Pincer can only remove pieces in the four cardinal directions, instad of all eight
         for pos in [(1,0),(-1,0),(0,1),(0,-1)]:
             target_i = end[0] + pos[0]
             target_j = end[1] + pos[1]
             pos_across= end[0] + 2 * pos[0], end[1] + 2 * pos[1]
             removed_location = target_i, target_j
+
+            # Either Pincer or Imitator can remove by sanwiching opponet's pieces
             if inbounds(state_to_update, removed_location)\
                 and inbounds(state_to_update, pos_across)\
                 and BC.who(board[target_i][target_j]) == opponent\
@@ -88,12 +89,16 @@ def remove_captured(state_to_update, move):
     if moved_piece == BC.BLACK_COORDINATOR or moved_piece == BC.WHITE_COORDINATOR\
         or moved_piece == BC.BLACK_IMITATOR or moved_piece == BC.WHITE_IMITATOR:
         kingPos = (0, 0)
+
+        # Find the King's Position
         for i, row in enumerate(board):
             for j, piece in enumerate(row):
                 if (piece == BC.BLACK_KING or piece == BC.WHITE_KING)\
                     and BC.who(piece) == player:
                     kingPos = (i,j)
                     break;
+
+        # Either Coordinator or Imitator can coordinate remove a piece
         for target_pos in [(end[0], kingPos[1]), (kingPos[0], end[1])]:
             potential_captured_piece = board[target_pos[0]][target_pos[1]]
             if BC.who(potential_captured_piece) == opponent and potential_captured_piece != 0\
@@ -110,6 +115,8 @@ def remove_captured(state_to_update, move):
         target_i = 0 if delta_i == 0 else end[0] - int((delta_i) / abs(delta_i))
         target_j = 0 if delta_j == 0 else end[1] - int((delta_j) / abs(delta_j))
         removed_location = target_i, target_j
+
+        # Either Leaper or Imitator can leap
         if inbounds(state_to_update, removed_location)\
             and BC.who(board[target_i][target_j]) == opponent\
             and board[target_i][target_j] != 0\
@@ -122,7 +129,6 @@ def remove_captured(state_to_update, move):
 
     return removed_pieces
 
-# Author: Aaron
 def available_moves(currentState):
     # Copy the state and the board
     turn = currentState.whose_move
@@ -132,13 +138,15 @@ def available_moves(currentState):
     for i, row in enumerate(board):
         for j, piece in enumerate(row):
             currPos = (i,j)
+
             # If not your piece or frozen, don't do anything
             if (BC.who(piece) == BC.BLACK and turn == BC.WHITE)\
                 or (BC.who(piece) == BC.WHITE and turn == BC.BLACK)\
                 or isFrozen(initialStateCopied, currPos) or (piece == 0):
                 continue
+
+            # Adding King's moves
             if piece == BC.BLACK_KING or piece == BC.WHITE_KING:
-                # Adding King's moves
                 for i_k in range(-1, 2) :
                     for j_k in range(-1, 2) :
                         newPos = (i + i_k, j + j_k)
@@ -152,6 +160,7 @@ def available_moves(currentState):
                     recursive_find_moves(initialStateCopied, currPos, currPos, 1, -1, available_move_list)
                     recursive_find_moves(initialStateCopied, currPos, currPos, -1, 1, available_move_list)
                     recursive_find_moves(initialStateCopied, currPos, currPos, -1, -1, available_move_list)
+
                 # Rook like moves
                 recursive_find_moves(initialStateCopied, currPos, currPos, 0, 1, available_move_list)
                 recursive_find_moves(initialStateCopied, currPos, currPos, 0, -1, available_move_list)
@@ -169,6 +178,8 @@ def isFrozen(state, position):
                 continue
             currentPiece = state.board[position[0]][position[1]]
             adjacent_piece = state.board[i][j]
+
+            # Either Freezer or an Imitator can Freeze a piece
             if (adjacent_piece == BC.BLACK_FREEZER and opponent == BC.BLACK)\
                 or (adjacent_piece == BC.WHITE_FREEZER and opponent == BC.WHITE)\
                 or (currentPiece == BC.BLACK_FREEZER and adjacent_piece == BC.WHITE_IMITATOR)\
@@ -186,18 +197,19 @@ def inbounds(state, square):
     i, j = square # (i, j)
     return i >= 0 and i < len(board) and j >= 0 and j < len(board[0])
 
-# Author: Aaron
 def recursive_find_moves(currState, startPos, currPos, delta_i, delta_j, available_move_list):
     board = currState.board
     curRow, curCol = currPos
     newPosition = curRow + delta_i, curCol + delta_j
     curPiece = board[curRow][curCol]
 
+    # Recurse another time if there is more room to explore
     if location_available(currState, newPosition):
         move = (startPos, newPosition)
         nextState = move_piece(currState, (currPos, newPosition), False) # False: b/c We don't want capture_mode
         available_move_list.append(move)
         recursive_find_moves(nextState, startPos, newPosition, delta_i, delta_j, available_move_list)
+
     # Leaper's and Imitator's movements
     elif inbounds(currState, newPosition):
         leapPos = curRow + 2 * delta_i, curCol + 2 * delta_j
@@ -224,7 +236,6 @@ def introduce():
 def prepare(player2Nickname):
     pass
 
-# Author: Aaron
 def staticEval(state):
     '''An enemy piece is -1 and my own piece is +1'''
     turn = state.whose_move
@@ -326,34 +337,42 @@ t12 = (BC.parse('''
 '''), 1, "Capture : Imitator4", ((4,3),(2,5)))
 
 def basic_capture_test():
+    # Witherdrawer
     currentState = BC.BC_state(t0[0], BC.WHITE)
     captured = remove_captured(currentState, t0[3])
     check(t0, len(captured))
 
+    # Pincer
     currentState = BC.BC_state(t1[0], BC.WHITE)
     captured = remove_captured(currentState, t1[3])
     check(t1, len(captured))
 
+    # Coordinator
     currentState = BC.BC_state(t2[0], BC.WHITE)
     captured = remove_captured(currentState, t2[3])
     check(t2, len(captured))
 
+    # Leaper
     currentState = BC.BC_state(t3[0], BC.WHITE)
     captured = remove_captured(currentState, t3[3])
     check(t3, len(captured))
 
+    # Imitator1
     currentState = BC.BC_state(t4[0], BC.WHITE)
     captured = remove_captured(currentState, t4[3])
     check(t4, len(captured))
 
+    # Imitator2
     currentState = BC.BC_state(t5[0], BC.WHITE)
     captured = remove_captured(currentState, t5[3])
     check(t5, len(captured))
 
+    # Imitator3
     currentState = BC.BC_state(t11[0], BC.WHITE)
     captured = remove_captured(currentState, t11[3])
     check(t11, len(captured))
 
+    # Imitator4
     currentState = BC.BC_state(t12[0], BC.WHITE)
     captured = remove_captured(currentState, t12[3])
     check(t12, len(captured))
@@ -413,6 +432,7 @@ p - - - - - - -
 p - - - - - - -
 '''), 22, "Movement: Withdrawer")
 
+# Helper method. Same funcationality as the "assert" statement
 def check(test, actual_val):
     if test[1] == actual_val:
         print(test[2]+" - success")
@@ -445,13 +465,17 @@ def basic_movement_test():
     moves = available_moves(currentState)
     check(t10, len(moves))
 
+def basic_make_move_test():
+    timelimit = 1000 # 1000 seconds
+    currentState = BC.BC_state()
+    state_info, utterance = makeMove(currentState, "First Move", timelimit)
+    move, newState = state_info
+    print("===============================")
+    print("  Chosen Move: "+str(move))
+    print("===============================")
+    print(str(newState))
+
 if __name__ == '__main__':
-   # Create the currentState and ask this agent to make a moves
    basic_capture_test()
    basic_movement_test()
-
-   # timelimit = 1000
-   # state_info, utterance = makeMove(currentState, "First Move", timelimit)
-   # move, newState = state_info
-   # print("move: "+str(move))
-   # print(str(newState))
+   basic_make_move_test()
