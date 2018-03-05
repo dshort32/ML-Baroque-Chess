@@ -16,6 +16,7 @@ def makeMove(currentState, currentRemark, timelimit):
     # numbers:
 
     # Author: Aaron
+    '''
     available_moves = available_moves(currentState)
     best_move = available_moves[0]
     state_to_return = move_piece(currentState, best_move)
@@ -24,8 +25,41 @@ def makeMove(currentState, currentRemark, timelimit):
         if staticEval(next_state) > staticEval(state_to_return):
             best_move = move
             state_to_return = next_state
+    '''
+    eval = alpha_beta(currentState, staticEval(currentState), 5, -math.inf, math.inf, True, start_time. timelimit)
+    moves = available_moves(currentState)
+    for move in moves :
+        next_state = move_piece(currentState, move)
+        if staticEval(next_state) == eval :
+            return [[move, next_state], newRemark]
 
     return [[best_move, state_to_return], newRemark]
+
+def alpha_beta(current_state, s_eval, depth, alpha, beta, max_player, begin_time, time_limit) :
+    if time.time() > begin_time + time_limit :
+        return s_eval
+    if depth == 0 :
+        return staticEval(currentState)
+    if max_player :
+        eval = -math.inf
+        moves = available_moves(current_state)
+        for move in moves :
+            next_state = move_piece(current_state, move)
+            eval = max(eval, alpha_beta(next_state, staticEval(next_state), depth - 1, alpha, beta, False, begin_time, time_limit))
+            alpha = max(alpha, eval)
+            if alpha >= beta : # beta cutoff
+                break
+        return eval
+    else :
+        eval = math.inf
+        moves = available_moves(current_state)
+        for move in moves :
+            next_state = move_piece(current_state, move)
+            eval = min(eval, alpha_beta(next_state, staticEval(next_state), depth - 1, alpha, beta, True, begin_time, time_limit))
+            beta = min(beta, eval)
+            if alpha >= beta :
+                break # alpha cutoff
+        return eval
 
 # Author: Aaron
 def move_piece(currentState, move, capture_mode=True):
