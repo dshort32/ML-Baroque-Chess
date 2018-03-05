@@ -87,17 +87,13 @@ def remove_captured(state_to_update, move):
                     kingPos = (i,j)
                     break;
 
-        # ERROR MUST BE FIXED
-        '''
         for target_pos in [(end[0], kingPos[1]), (kingPos[0], end[1])]:
-            if BC.who(board[target_pos[0]][target_pos[1]]) == opponent:
-                removed_piece = board[[target_pos[0]][target_pos[1]]
-                print(str(0))
+            potential_captured_piece = board[target_pos[0]][target_pos[1]]
+            if BC.who(potential_captured_piece) == opponent and potential_captured_piece != 0:
                 board[target_pos[0]][target_pos[1]] = 0
-                removed_pieces.append((removed_piece, removed_location))
-        '''
+                removed_pieces.append((potential_captured_piece, target_pos))
+
     elif moved_piece == BC.BLACK_LEAPER or moved_piece == BC.WHITE_LEAPER:
-        # HAVE NOT BEEN TESTED
         delta_i = end[0] - start[0]
         delta_j = end[1] - start[1]
         target_i = 0 if delta_i == 0 else end[0] - int((delta_i) / abs(delta_i))
