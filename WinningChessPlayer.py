@@ -27,21 +27,12 @@ def makeMove(currentState, currentRemark, timelimit):
 def alpha_beta(current_state, depth, alpha, beta, max_player, end_time):
     moves = Agent.available_moves(current_state)
     if time.time() > end_time or depth == 0 or len(moves) == 0:
-        val = staticEval(current_state)
-
-        '''
-        # if val != 20:
-        print(current_state)
-        print("Above eval: "+str(val))
-        print("=============================================")
-        '''
         return staticEval(currentState)
     if max_player:
         evaluated = -math.inf
 
         for move in moves :
             next_state = Agent.move_piece(current_state, move)
-
             '''
             string = ""
             for i in range(0, 2 - depth):
@@ -53,17 +44,14 @@ def alpha_beta(current_state, depth, alpha, beta, max_player, end_time):
                 string += " "
             print(string+BC.CODE_TO_INIT[next_state.board[move[1][0]][move[1][1]]]+" - "+str(move))
             '''
-
             evaluated = max(evaluated, alpha_beta(next_state, depth - 1, alpha, beta, False, end_time))
             alpha = max(alpha, evaluated)
             if alpha >= beta : # beta cutoff
-                # print("depth: "+str(depth)+" - ["+str(alpha)+" , "+str(beta)+"]")
                 break
     else:
         evaluated = math.inf
         for move in moves :
             next_state = Agent.move_piece(current_state, move)
-
             '''
             string = ""
             for i in range(0, 2 - depth):
@@ -75,20 +63,11 @@ def alpha_beta(current_state, depth, alpha, beta, max_player, end_time):
                 string += " "
             print(string+BC.CODE_TO_INIT[next_state.board[move[1][0]][move[1][1]]]+" - "+str(move))
             '''
-
             evaluated = min(evaluated, alpha_beta(next_state, depth - 1, alpha, beta, True, end_time))
             beta = min(beta, evaluated)
             if alpha >= beta :
-                # print("depth: "+str(depth)+" - ["+str(alpha)+" , "+str(beta)+"]")
                 break # alpha cutoff
 
-    '''
-    if s_eval != 0:
-        string = ""
-        for i in range(0, 50 - depth):
-            string += " "
-        print(string+" val: "+str(s_eval)+" depth: "+str(depth)+" - ["+str(alpha)+" , "+str(beta)+"]")
-    '''
     return evaluated
 
 def nickname():
@@ -139,5 +118,5 @@ if __name__ == '__main__':
     # basic_make_move_test()
     currentState = BC.BC_state(INITIAL, BC.WHITE)
     end_time = time.time() + 20 # in seconds
-    evaluated = alpha_beta(currentState, 2, -math.inf, math.inf, True, end_time)
+    evaluated = alpha_beta(currentState, 10, -math.inf, math.inf, True, end_time)
     print("CONCLUSION: "+str(evaluated))
