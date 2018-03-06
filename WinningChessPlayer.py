@@ -12,11 +12,11 @@ def makeMove(currentState, currentRemark, timelimit):
 
     valid_moves = available_moves(currentState)
     best_move = valid_moves[0]
-    eval = alpha_beta(currentState, staticEval(currentState), 5, -math.inf, math.inf, True, start_time. timelimit)
+    evaluated = alpha_beta(currentState, staticEval(currentState), 5, -math.inf, math.inf, True, start_time. timelimit)
     moves = available_moves(currentState)
     for move in moves :
         next_state = move_piece(currentState, move)
-        if staticEval(next_state) == eval :
+        if staticEval(next_state) == evaluated :
             return [[move, next_state], newRemark]
 
     return [[best_move, state_to_return], newRemark]
@@ -27,25 +27,25 @@ def alpha_beta(current_state, s_eval, depth, alpha, beta, max_player, begin_time
     if depth == 0 :
         return staticEval(currentState)
     if max_player :
-        eval = -math.inf
+        evaluated = -math.inf
         moves = available_moves(current_state)
         for move in moves :
             next_state = move_piece(current_state, move)
-            eval = max(eval, alpha_beta(next_state, staticEval(next_state), depth - 1, alpha, beta, False, begin_time, time_limit))
-            alpha = max(alpha, eval)
+            evaluated = max(evaluated, alpha_beta(next_state, staticEval(next_state), depth - 1, alpha, beta, False, begin_time, time_limit))
+            alpha = max(alpha, evaluated)
             if alpha >= beta : # beta cutoff
                 break
-        return eval
+        return evaluated
     else :
-        eval = math.inf
+        evaluated = math.inf
         moves = available_moves(current_state)
         for move in moves :
             next_state = move_piece(current_state, move)
-            eval = min(eval, alpha_beta(next_state, staticEval(next_state), depth - 1, alpha, beta, True, begin_time, time_limit))
-            beta = min(beta, eval)
+            evaluated = min(evaluated, alpha_beta(next_state, staticEval(next_state), depth - 1, alpha, beta, True, begin_time, time_limit))
+            beta = min(beta, evaluated)
             if alpha >= beta :
                 break # alpha cutoff
-        return eval
+        return evaluated
 
 # Author: Aaron
 def move_piece(currentState, move, capture_mode=True):
