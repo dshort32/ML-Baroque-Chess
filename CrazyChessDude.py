@@ -1,29 +1,22 @@
 '''CrazyChessDude.py
-This player just chooses the first option that is possible without thinking
-about which move is the best.
 
+This player just chooses a random move possible.
 '''
 
+import time
+from random import randint
 import BC_state_etc as BC
+import GenericBaroqueChessAgent as Agent
 
 def makeMove(currentState, currentRemark, timelimit):
+    start_time = time.time()
 
-    # Compute the new state for a move.
-    # This is a placeholder that just copies the current state.
-    newState = BC.BC_state(currentState.board)
-
-    # Fix up whose turn it will be.
-    newState.whose_move = 1 - currentState.whose_move
-
-    # Construct a representation of the move that goes from the
-    # currentState to the newState.
-    # Here is a placeholder in the right format but with made-up
-    # numbers:
-    move = ((1, 2), (3, 2))
-
-    # Make up a new remark
-    newRemark = "I'm not very good at this game yet. I am not moving, which isn't legal, but... whatever."
-    return [[move, newState], newRemark]
+    valid_moves = Agent.available_moves(currentState)
+    random_i = randint(0, len(valid_moves) - 1)
+    best_move = valid_moves[random_i]
+    state_to_return = Agent.move_piece(currentState, best_move)
+    newRemark = "Just taking a move"
+    return [[best_move, state_to_return], newRemark]
 
 def nickname():
     return "CrazyDude"
@@ -34,5 +27,15 @@ def introduce():
 def prepare(player2Nickname):
     pass
 
-def staticEval(state):
-    return
+def basic_make_move_test():
+    timelimit = 1000 # 1000 seconds
+    currentState = BC.BC_state()
+    state_info, utterance = makeMove(currentState, "First Move", timelimit)
+    move, newState = state_info
+    print("===============================")
+    print("  Chosen Move: "+str(move))
+    print("===============================")
+    print(str(newState))
+
+if __name__ == '__main__':
+    basic_make_move_test()
