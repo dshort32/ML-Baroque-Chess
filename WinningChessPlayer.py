@@ -8,29 +8,14 @@ from random import randrange
 import BC_state_etc as BC
 import GenericBaroqueChessAgent as Agent
 
+PIECE_TO_VAL = {0: 0, 2:10, 3:10, 4:30, 5:30, 6:40, 7:40, 8:80, 9:80,
+  10:80, 11:80, 12:1000, 13:1000, 14:80, 15:80}
+
 def makeMove(currentState, currentRemark, timelimit):
-    start_time = time.time()
+    end_time = time.time() + timelimit # in seconds
 
-
-    valid_moves = Agent.available_moves(currentState)
     best_move = valid_moves[0]
-    state_to_return = Agent.move_piece(currentState, best_move)
-    for move in valid_moves:
-        next_state = Agent.move_piece(currentState, move)
-
-        # Pick the best move in the order of static_eval function
-        if staticEval(next_state) > staticEval(state_to_return):
-            best_move = move
-            state_to_return = next_state
-
-    newRemark = "Just taking a move"
-    '''
-    eval = alpha_beta(currentState, staticEval(currentState), 5, -math.inf, math.inf, True, start_time. timelimit)
-
-    valid_moves = available_moves(currentState)
-    best_move = valid_moves[0]
-    evaluated = alpha_beta(currentState, staticEval(currentState), 5, -math.inf, math.inf, True, start_time. timelimit)
-
+    evaluated = alpha_beta(currentState, 20, -math.inf, math.inf, True, end_time)
     moves = available_moves(currentState)
     for move in moves :
         next_state = move_piece(currentState, move)
@@ -38,34 +23,73 @@ def makeMove(currentState, currentRemark, timelimit):
             return [[move, next_state], newRemark]
 
     return [[best_move, state_to_return], newRemark]
-    '''
-    return [[best_move, state_to_return], newRemark]
 
-def alpha_beta(current_state, s_eval, depth, alpha, beta, max_player, begin_time, time_limit) :
-    if time.time() > begin_time + time_limit :
-        return s_eval
-    if depth == 0 :
+def alpha_beta(current_state, depth, alpha, beta, max_player, end_time):
+    moves = Agent.available_moves(current_state)
+    if time.time() > end_time or depth == 0 or len(moves) == 0:
+        val = staticEval(current_state)
+
+        '''
+        # if val != 20:
+        print(current_state)
+        print("Above eval: "+str(val))
+        print("=============================================")
+        '''
         return staticEval(currentState)
-    if max_player :
+    if max_player:
         evaluated = -math.inf
-        moves = available_moves(current_state)
+
         for move in moves :
-            next_state = move_piece(current_state, move)
-            evaluated = max(evaluated, alpha_beta(next_state, staticEval(next_state), depth - 1, alpha, beta, False, begin_time, time_limit))
+            next_state = Agent.move_piece(current_state, move)
+
+            '''
+            string = ""
+            for i in range(0, 2 - depth):
+                string += " "
+            print(string+"WHITE: "+str(move))
+
+            string = ""
+            for i in range(0, 3 - depth):
+                string += " "
+            print(string+BC.CODE_TO_INIT[next_state.board[move[1][0]][move[1][1]]]+" - "+str(move))
+            '''
+
+            evaluated = max(evaluated, alpha_beta(next_state, depth - 1, alpha, beta, False, end_time))
             alpha = max(alpha, evaluated)
             if alpha >= beta : # beta cutoff
+                # print("depth: "+str(depth)+" - ["+str(alpha)+" , "+str(beta)+"]")
                 break
-        return evaluated
-    else :
+    else:
         evaluated = math.inf
-        moves = available_moves(current_state)
         for move in moves :
-            next_state = move_piece(current_state, move)
-            evaluated = min(evaluated, alpha_beta(next_state, staticEval(next_state), depth - 1, alpha, beta, True, begin_time, time_limit))
+            next_state = Agent.move_piece(current_state, move)
+
+            '''
+            string = ""
+            for i in range(0, 2 - depth):
+                string += " "
+            print(string+"BLACK: "+str(move))
+
+            string = ""
+            for i in range(0, 3 - depth):
+                string += " "
+            print(string+BC.CODE_TO_INIT[next_state.board[move[1][0]][move[1][1]]]+" - "+str(move))
+            '''
+
+            evaluated = min(evaluated, alpha_beta(next_state, depth - 1, alpha, beta, True, end_time))
             beta = min(beta, evaluated)
             if alpha >= beta :
+                # print("depth: "+str(depth)+" - ["+str(alpha)+" , "+str(beta)+"]")
                 break # alpha cutoff
-        return evaluated
+
+    '''
+    if s_eval != 0:
+        string = ""
+        for i in range(0, 50 - depth):
+            string += " "
+        print(string+" val: "+str(s_eval)+" depth: "+str(depth)+" - ["+str(alpha)+" , "+str(beta)+"]")
+    '''
+    return evaluated
 
 def nickname():
     return "Winner"
@@ -82,15 +106,16 @@ def staticEval(state):
     static_val = 0
     for row in state.board:
         for piece in row:
-            if piece != 0 and BC.who(piece) == BC.WHITE:
-                static_val += 1
-            elif piece != 0:
-                static_val -= 1
-    return static_val if turn == BC.WHITE else -static_val
+            val = PIECE_TO_VAL[piece]
+            if BC.who(piece) == BC.WHITE:
+                static_val += val
+            else:
+                static_val -= val
+    return static_val
 
 
 def basic_make_move_test():
-    timelimit = 1000 # 1000 seconds
+    timelimit = 2 # 1000 seconds
     currentState = BC.BC_state()
     state_info, utterance = makeMove(currentState, "First Move", timelimit)
     move, newState = state_info
@@ -99,5 +124,20 @@ def basic_make_move_test():
     print("===============================")
     print(str(newState))
 
+
+INITIAL = BC.parse('''
+- - - - - - - k
+- - - - - - - -
+- - - - - - - -
+- - - - - - - -
+- - - - - - - -
+F F F - - - - -
+i i i - - - - -
+L p - - - - - K
+''')
 if __name__ == '__main__':
-    basic_make_move_test()
+    # basic_make_move_test()
+    currentState = BC.BC_state(INITIAL, BC.WHITE)
+    end_time = time.time() + 20 # in seconds
+    evaluated = alpha_beta(currentState, 2, -math.inf, math.inf, True, end_time)
+    print("CONCLUSION: "+str(evaluated))

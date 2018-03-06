@@ -17,10 +17,14 @@ def move_piece(currentState, move, capture_mode=True):
 
     start, end = move
     piece = next_state.board[start[0]][start[1]]
+    # if piece == 3 and end[0] == 7 and end[1] == 2:
+    #    print("----------------------------------------------------THIS")
     next_state.board[start[0]][start[1]] = 0
     next_state.board[end[0]][end[1]] = piece
     if capture_mode:
-        remove_captured(next_state, move)
+        removed_pieces = remove_captured(next_state, move)
+        # if len(removed_pieces) != 0:
+        #    print("removed: "+str(removed_pieces))
     return next_state
 
 def remove_captured(state_to_update, move):
@@ -34,8 +38,8 @@ def remove_captured(state_to_update, move):
         or moved_piece == BC.BLACK_IMITATOR or moved_piece == BC.WHITE_IMITATOR:
         delta_i = end[0] - start[0]
         delta_j = end[1] - start[1]
-        target_i = 0 if delta_i == 0 else start[0] - int((delta_i) / abs(delta_i))
-        target_j = 0 if delta_j == 0 else start[1] - int((delta_j) / abs(delta_j))
+        target_i = start[0] if delta_i == 0 else start[0] - int((delta_i) / abs(delta_i))
+        target_j = start[1] if delta_j == 0 else start[1] - int((delta_j) / abs(delta_j))
         removed_location = target_i, target_j
 
         # Either Withdrawer or Imitator can remove pieces by Withdrawing
@@ -57,6 +61,7 @@ def remove_captured(state_to_update, move):
             target_j = end[1] + pos[1]
             pos_across= end[0] + 2 * pos[0], end[1] + 2 * pos[1]
             removed_location = target_i, target_j
+            # print("pos_across: "+str(pos_across) +" pos: "+str(end[0] + 2 * pos[0]))
 
             # Either Pincer or Imitator can remove by sanwiching opponet's pieces
             if inbounds(state_to_update, removed_location)\
@@ -64,6 +69,7 @@ def remove_captured(state_to_update, move):
                 and BC.who(board[target_i][target_j]) == opponent\
                 and board[target_i][target_j] != 0\
                 and BC.who(board[pos_across[0]][pos_across[1]]) == player\
+                and board[pos_across[0]][pos_across[1]] != 0\
                 and (moved_piece == BC.BLACK_PINCER or moved_piece == BC.WHITE_PINCER\
                     or (moved_piece == BC.BLACK_IMITATOR and board[target_i][target_j] == BC.WHITE_PINCER)
                     or (moved_piece == BC.WHITE_IMITATOR and board[target_i][target_j] == BC.BLACK_PINCER)):
@@ -96,8 +102,8 @@ def remove_captured(state_to_update, move):
         or moved_piece == BC.BLACK_IMITATOR or moved_piece == BC.WHITE_IMITATOR:
         delta_i = end[0] - start[0]
         delta_j = end[1] - start[1]
-        target_i = 0 if delta_i == 0 else end[0] - int((delta_i) / abs(delta_i))
-        target_j = 0 if delta_j == 0 else end[1] - int((delta_j) / abs(delta_j))
+        target_i = end[0] if delta_i == 0 else end[0] - int((delta_i) / abs(delta_i))
+        target_j = end[1] if delta_j == 0 else end[1] - int((delta_j) / abs(delta_j))
         removed_location = target_i, target_j
 
         # Either Leaper or Imitator can leap
