@@ -5,68 +5,28 @@
 import math
 import time
 from random import randint
+from random import random
 import BC_state_etc as BC
 import GenericBaroqueChessAgent as Agent
 
-PIECE_TO_VAL = {0: 0, 2:-10, 3:10, 4:-30, 5:30, 6:-40, 7:40, 8:-80, 9:80,
-  10:-80, 11:80, 12:-10000, 13:10000, 14:-80, 15:80}
-
-NUM_TURNS_TAKEN = 0
-MOVE_QUEUE = [(0,((0, 0),(0, 0))) for i in range(10)]
+Q_VALUE_FILE = "q_value.txt"
+POLICY = {}
+Q_VALUES = {}
+GAMMA = 0.9
+ALPHA = 0.1
+EPSILON = 0.7
 
 def makeMove(currentState, currentRemark, timelimit):
-    global NUM_TURNS_TAKEN, MOVE_QUEUE
-    end_time = time.time() + timelimit - 0.5 # in seconds
-    NUM_TURNS_TAKEN += 1
-    depth = 0
-
-    valid_moves = Agent.available_moves(currentState)
-    best_move = valid_moves[0]
-    while time.time() < end_time:
-        evaluated, best_move = alpha_beta(currentState, depth, -math.inf, math.inf, True, end_time)
-        depth += 1
-
-    newRemark = "Here it is. Shit"
-    piece = currentState.board[best_move[0][0]][best_move[0][1]]
-    if (piece, best_move) in MOVE_QUEUE:
+    global POLICY
+    if currentState not in POLICY:
+        valid_moves = Agent.available_moves(currentState)
         random_i = randint(0, len(valid_moves) - 1)
         best_move = valid_moves[random_i]
-        piece = currentState.board[best_move[0][0]][best_move[0][1]]
-
-    MOVE_QUEUE[NUM_TURNS_TAKEN % len(MOVE_QUEUE)] = (piece, best_move)
-    state_to_return = Agent.move_piece(currentState, best_move)
-    return [[best_move, state_to_return], newRemark]
-
-def alpha_beta(current_state, depth, alpha, beta, max_player, end_time):
-    moves = Agent.available_moves(current_state)
-    # moves = Agent.order(current_state, moves)
-    best_move = moves[0]
-    if time.time() > end_time or depth == 0 or len(moves) == 0:
-        return (staticEval(current_state), best_move)
-    if max_player:
-        evaluated = -math.inf
-
-        for move in moves :
-            next_state = Agent.move_piece(current_state, move)
-            result, child_move = alpha_beta(next_state, depth - 1, alpha, beta, False, end_time)
-            if result > evaluated:
-                evaluated = result
-                best_move = move
-            alpha = max(alpha, evaluated)
-            if alpha >= beta : # beta cutoff
-                break
     else:
-        evaluated = math.inf
-        for move in moves :
-            next_state = Agent.move_piece(current_state, move)
-            result, child_move = alpha_beta(next_state, depth - 1, alpha, beta, True, end_time)
-            if result < evaluated:
-                evaluated = result
-                best_move = move
-            beta = min(beta, evaluated)
-            if alpha >= beta :
-                break # alpha cutoff
-    return evaluated, best_move
+        best_move = POLICY[currentState]
+    state_to_return = Agent.move_piece(currentState, best_move)
+    newRemark = "HERE IT IS"
+    return [[best_move, state_to_return], newRemark]
 
 def nickname():
     return "Winner"
@@ -75,8 +35,8 @@ def introduce():
     return "I'm Winner. I am decent at playing chess."
 
 def prepare(player2Nickname):
+    loadInfo()
     pass
-
 
 def staticEval(state):
     '''An enemy piece is -1 and my own piece is +1'''
@@ -86,21 +46,134 @@ def staticEval(state):
     # Calculating next_to_enemy_piece
     for i, row in enumerate(state.board):
         for j, piece in enumerate(row):
-            currPieceOwner = BC.who(piece)
-            static_val += PIECE_TO_VAL[piece] # Living bonus
+            if piece != 0:
+                if BC.who(piece) == turn:
+                    static_val += 1
+                else:
+                    static_val -= 1
+
 
     return static_val
 
+def loadInfo():
+    global Q_VALUE_FILE, POLICY
+    f = open(Q_VALUE_FILE, "r")
+    policy = {}
+    while True:
+        state = f.read(64)
+        action = f.read(4)
+        if not state or not action:
+            break
 
-def basic_make_move_test():
-    timelimit = 2 # 1000 seconds
-    currentState = BC.BC_state()
-    state_info, utterance = makeMove(currentState, "First Move", timelimit)
-    move, newState = state_info
-    print("===============================")
-    print("  Chosen Move: "+str(move))
-    print("===============================")
-    print(str(newState))
+        # create state
+        board = [[0,0,0,0,0,0,0,0] for r in range(8)]
+        for v in range(64):
+            i = int(v / 8)
+            j = v % 8
+            board[i][j] = int(state[v], 16)
+        state = BC.BC_state(board, BC.WHITE)
+
+        # craete move
+        start_i = int(action[0],16)
+        start_j = int(action[1],16)
+        end_i = int(action[2],16)
+        end_j = int(action[3],16)
+        move = ((start_i, start_j), (end_i, end_j))
+
+        # add policy
+        policy[state] = move
+    f.close()
+    POLICY = policy
+
+def saveInfo():
+    global Q_VALUE_FILE, POLICY
+    policy = POLICY
+    f = open(Q_VALUE_FILE, "w")
+    f.truncate(0)
+    for state in policy.keys():
+        string = ""
+
+        # adding state info
+        for row in state.board:
+            for piece in row:
+                string += format(piece, "X")
+
+        # adding move info
+        move = policy[state]
+        string += format(move[0][0], "X")
+        string += format(move[0][1], "X")
+        string += format(move[1][0], "X")
+        string += format(move[1][1], "X")
+
+        # write the string
+        val = f.write(string)
+    f.close()
+
+def hasLost(state, side = BC.WHITE):
+    board = state.board
+    for row in board:
+        for piece in row:
+            if (piece == 12 or piece == 13) and BC.who(piece) == side:
+                return False
+    return True
+
+def learn(seconds):
+    global POLICY, GAMMA, ALPHA, EPSILON
+    end_time = time.time() + seconds
+    POLICY = {}
+    Q_VALUES = {}
+    n = 0
+    while end_time > time.time():
+        initState = BC.BC_state(INITIAL, BC.WHITE)
+        currS = initState
+        prev_state = currS
+        prev_move = None
+        r = 0
+        count = 0
+        while not hasLost(currS, side=BC.BLACK):
+            moves = Agent.available_moves(currS)
+            if len(moves) == 0: break
+            max_val = getQVal((currS, moves[0]))
+            POLICY[currS] = moves[0]
+            for new_move in moves:
+                temp = getQVal((currS, new_move))
+                if(temp > max_val):
+                    max_val = temp
+                    POLICY[currS] = new_move
+
+            sample = r + GAMMA * max_val
+            new_qval = (1 - ALPHA)*getQVal((prev_state, prev_move))\
+                       + ALPHA*sample
+
+            # Save it in the dictionary of Q_VALUES:
+            Q_VALUES[(prev_state, prev_move)] = new_qval
+
+            chosen_action = None
+            if random() > EPSILON and currS in POLICY:
+                chosen_action = POLICY[currS]
+            else:
+                random_i = randint(0, len(moves) - 1)
+                chosen_action = moves[random_i]
+
+            prev_move = chosen_action
+            prev_state = currS
+            r = staticEval(currS)
+            currS = Agent.move_piece(currS, chosen_action)
+            count += 1
+            if count % 100 == 0:
+                print(currS)
+                print(str(count)+" M: "+str(chosen_action)+" q: "+str(new_qval))
+
+        print("Iteration "+str(n)+" completed")
+        n += 1
+    saveInfo()
+
+
+def getQVal(tup):
+    global Q_VALUES
+    if tup in Q_VALUES:
+        return Q_VALUES[tup]
+    return 0
 
 
 INITIAL = BC.parse('''
@@ -113,26 +186,6 @@ p p p p p p p p
 P P P P P P P P
 F L I W K I L C
 ''')
+
 if __name__ == '__main__':
-    # basic_make_move_test()
-
-    currentState = BC.BC_state(INITIAL, BC.BLACK)
-    print("val: "+str(staticEval(currentState)))
-
-    end_time = time.time() + 10 # in seconds
-
-    evaluated, move = alpha_beta(currentState, 2, -math.inf, math.inf, True, end_time)
-    print(currentState)
-    lol = staticEval(Agent.move_piece(currentState, move))
-    print("CONCLUSION: "+str(evaluated))
-    print("val: "+str(lol))
-    print("Move: "+str(move))
-
-
-    '''
-    nother = BC.BC_state(b2, BC.WHITE)
-    print("B1: "+str(staticEval(currentState)))
-    print("B2: "+str(staticEval(nother)))
-    policy[getStateHash(currentState)] = "a"
-    policy[getStateHash(b2)] = "b"
-    '''
+    learn(60) # 6 hours 6 * 60 * 60

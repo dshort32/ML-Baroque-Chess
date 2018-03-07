@@ -122,6 +122,10 @@ class BC_state:
       except Exception as e:
         return False
 
+
+    def __hash__(self):
+      return (self.__str__()).__hash__()
+
 def test_starting_board():
   init_state = BC_state(INITIAL, WHITE)
   print(init_state)
