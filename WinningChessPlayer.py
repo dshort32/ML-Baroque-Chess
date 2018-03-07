@@ -12,22 +12,23 @@ PIECE_TO_VAL = {0: 0, 2:10, 3:10, 4:30, 5:30, 6:40, 7:40, 8:80, 9:80,
   10:80, 11:80, 12:1000, 13:1000, 14:80, 15:80}
 
 def makeMove(currentState, currentRemark, timelimit):
-    end_time = time.time() + timelimit # in seconds
+    end_time = time.time() + timelimit - 0.05 # in seconds
 
     depth = 0
-    best_move = Agent.available_moves(currentState)[0]
+    best_move = (Agent.available_moves(currentState))[0]
     state_to_return = Agent.move_piece(currentState, best_move)
     while time.time() < end_time:
         evaluated, best_move = alpha_beta(currentState, depth, -math.inf, math.inf, True, end_time)
 
     newRemark = "Here it is. Shit"
+    print("B: "+str(best_move))
     return [[best_move, state_to_return], newRemark]
 
 def alpha_beta(current_state, depth, alpha, beta, max_player, end_time):
     moves = Agent.available_moves(current_state)
     best_move = moves[0]
     if time.time() > end_time or depth == 0 or len(moves) == 0:
-        return (staticEval(current_state), None)
+        return (staticEval(current_state), best_move)
     if max_player:
         evaluated = -math.inf
 
