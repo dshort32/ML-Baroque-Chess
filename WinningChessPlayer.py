@@ -25,8 +25,13 @@ def makeMove(currentState, currentRemark, timelimit):
         currentState = switchBlackAndWlhite(currentState)
     if currentState not in POLICY:
         valid_moves = Agent.available_moves(currentState)
-        random_i = randint(0, len(valid_moves) - 1)
-        best_move = valid_moves[random_i]
+        if len(valid_moves) == 0:
+            return None, "I believe I have no legal moves."
+        elif len(valid_moves) == 1:
+            best_move = valid_moves[0]
+        else:
+            random_i = randint(0, len(valid_moves) - 1)
+            best_move = valid_moves[random_i]
     else:
         best_move = POLICY[currentState]
     state_to_return = Agent.move_piece(currentState, best_move)
@@ -42,7 +47,7 @@ def introduce():
     return "I'm Winner. I am decent at playing chess."
 
 def prepare(player2Nickname):
-    loadInfo()
+    # loadInfo()
     pass
 
 def staticEval(state):
