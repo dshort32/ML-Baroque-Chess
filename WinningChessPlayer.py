@@ -18,6 +18,11 @@ EPSILON = 0.7
 
 def makeMove(currentState, currentRemark, timelimit):
     global POLICY
+    # Switch white and black
+    flag = False
+    if currentState.whose_move == BC.BLACK:
+        flag = True
+        currentState = switchBlackAndWlhite(currentState)
     if currentState not in POLICY:
         valid_moves = Agent.available_moves(currentState)
         random_i = randint(0, len(valid_moves) - 1)
@@ -25,6 +30,8 @@ def makeMove(currentState, currentRemark, timelimit):
     else:
         best_move = POLICY[currentState]
     state_to_return = Agent.move_piece(currentState, best_move)
+    if flag:
+        state_to_return = switchBlackAndWlhite(currentState)
     newRemark = "HERE IT IS"
     return [[best_move, state_to_return], newRemark]
 
@@ -123,14 +130,32 @@ def learn(seconds):
     POLICY = {}
     Q_VALUES = {}
     n = 0
-    while end_time > time.time():
+    while end_time > time.time() and len(POLICY) < 1000000:
         initState = BC.BC_state(INITIAL, BC.WHITE)
         currS = initState
         prev_state = currS
         prev_move = None
         r = 0
         count = 0
-        while not hasLost(currS, side=BC.BLACK):
+        while end_time > time.time() and len(POLICY) < 1000000 and not hasLost(currS, side=BC.BLACK):
+            if currS.whose_move == BC.BLACK:
+                # currS = switchBlackAndWlhite(currS)
+                valid_moves = Agent.available_moves(currS)
+                if len(valid_moves) == 0:
+                    break
+                elif len(valid_moves) == 1:
+                    best_move = valid_moves[0]
+                else:
+                    currS = switchBlackAndWlhite(currS)
+                    if currS not in POLICY:
+                        random_i = randint(0, len(valid_moves) - 1)
+                        best_move = valid_moves[random_i]
+                    else:
+                        best_move = POLICY[currS]
+                currS = Agent.move_piece(currS, best_move)
+                currS = switchBlackAndWlhite(currS)
+                continue
+
             moves = Agent.available_moves(currS)
             if len(moves) == 0: break
             max_val = getQVal((currS, moves[0]))
@@ -160,10 +185,8 @@ def learn(seconds):
             r = staticEval(currS)
             currS = Agent.move_piece(currS, chosen_action)
             count += 1
-            if count % 100 == 0:
-                print(currS)
-                print(str(count)+" M: "+str(chosen_action)+" q: "+str(new_qval))
-
+            if count % 300 == 0:
+                print(str(count))
         print("Iteration "+str(n)+" completed")
         n += 1
     saveInfo()
@@ -175,6 +198,17 @@ def getQVal(tup):
         return Q_VALUES[tup]
     return 0
 
+def switchBlackAndWlhite(state):
+    opposite = 1 - state.whose_move
+    newBoard = state.board[:][:]
+    for i, row in enumerate(state.board):
+        for j, piece in enumerate(row):
+            if piece != 0:
+                if piece % 2 == 0:
+                    newBoard[i][j] = piece + 1
+                else:
+                    newBoard[i][j] = piece - 1
+    return BC.BC_state(newBoard, opposite)
 
 INITIAL = BC.parse('''
 c l i w k i l f
@@ -188,4 +222,13 @@ F L I W K I L C
 ''')
 
 if __name__ == '__main__':
-    learn(60) # 6 hours 6 * 60 * 60
+    '''
+    # Learning took me a LONG time. Do not Learn unless you know you have a plenty of time
+    start_time = time.time()
+    learn(4 * 60 * 60 + 4 * 60) # 4 hours 40 minutes 4 * 60 * 60 + 40 * 60
+    end_time = time.time()
+    duration = end_time - start_time
+    print("Duration: "+ str(duration))
+    print("start_time: "+ str(start_time))
+    print("end_time: "+ str(end_time))
+    '''
