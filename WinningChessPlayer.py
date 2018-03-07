@@ -14,37 +14,30 @@ PIECE_TO_VAL = {0: 0, 2:10, 3:10, 4:30, 5:30, 6:40, 7:40, 8:80, 9:80,
 def makeMove(currentState, currentRemark, timelimit):
     end_time = time.time() + timelimit # in seconds
 
-    best_move = valid_moves[0]
-    evaluated = alpha_beta(currentState, 20, -math.inf, math.inf, True, end_time)
-    moves = available_moves(currentState)
-    for move in moves :
-        next_state = move_piece(currentState, move)
-        if staticEval(next_state) == evaluated :
-            return [[move, next_state], newRemark]
+    depth = 0
+    best_move = Agent.available_moves(currentState)[0]
+    state_to_return = Agent.move_piece(currentState, best_move)
+    while time.time() < end_time:
+        evaluated, best_move = alpha_beta(currentState, depth, -math.inf, math.inf, True, end_time)
 
+    newRemark = "Here it is. Shit"
     return [[best_move, state_to_return], newRemark]
 
 def alpha_beta(current_state, depth, alpha, beta, max_player, end_time):
     moves = Agent.available_moves(current_state)
+    best_move = moves[0]
     if time.time() > end_time or depth == 0 or len(moves) == 0:
-        return staticEval(currentState)
+        return (staticEval(current_state), None)
     if max_player:
         evaluated = -math.inf
 
         for move in moves :
             next_state = Agent.move_piece(current_state, move)
-            '''
-            string = ""
-            for i in range(0, 2 - depth):
-                string += " "
-            print(string+"WHITE: "+str(move))
-
-            string = ""
-            for i in range(0, 3 - depth):
-                string += " "
-            print(string+BC.CODE_TO_INIT[next_state.board[move[1][0]][move[1][1]]]+" - "+str(move))
-            '''
-            evaluated = max(evaluated, alpha_beta(next_state, depth - 1, alpha, beta, False, end_time))
+            result, child_move = alpha_beta(next_state, depth - 1, alpha, beta, False, end_time)
+            # evaluated = max(evaluated, result)
+            if result > evaluated:
+                evaluated = result
+                best_move = move
             alpha = max(alpha, evaluated)
             if alpha >= beta : # beta cutoff
                 break
@@ -52,23 +45,18 @@ def alpha_beta(current_state, depth, alpha, beta, max_player, end_time):
         evaluated = math.inf
         for move in moves :
             next_state = Agent.move_piece(current_state, move)
-            '''
-            string = ""
-            for i in range(0, 2 - depth):
-                string += " "
-            print(string+"BLACK: "+str(move))
-
-            string = ""
-            for i in range(0, 3 - depth):
-                string += " "
-            print(string+BC.CODE_TO_INIT[next_state.board[move[1][0]][move[1][1]]]+" - "+str(move))
-            '''
-            evaluated = min(evaluated, alpha_beta(next_state, depth - 1, alpha, beta, True, end_time))
+            result, child_move = alpha_beta(next_state, depth - 1, alpha, beta, True, end_time)
+            # evaluated = min(evaluated, result)
+            if result < evaluated:
+                evaluated = result
+                best_move = move
             beta = min(beta, evaluated)
             if alpha >= beta :
                 break # alpha cutoff
+    return evaluated, best_move
 
-    return evaluated
+def getStateHash(state):
+    return (str(state)).__hash__()
 
 def nickname():
     return "Winner"
@@ -105,6 +93,17 @@ def basic_make_move_test():
 
 
 INITIAL = BC.parse('''
+c l i w k i l f
+p p p p p p p p
+- - - - - - - -
+- - - - - - - -
+- - - - - - - -
+- - - - - - - -
+P P P P P P P P
+F L I W K I L C
+''')
+
+b2 = BC.parse('''
 - - - - - - - k
 - - - - - - - -
 - - - - - - - -
@@ -112,11 +111,21 @@ INITIAL = BC.parse('''
 - - - - - - - -
 F F F - - - - -
 i i i - - - - -
-L p - - - - - K
+- - L - - - - K
 ''')
 if __name__ == '__main__':
     # basic_make_move_test()
-    currentState = BC.BC_state(INITIAL, BC.WHITE)
-    end_time = time.time() + 20 # in seconds
-    evaluated = alpha_beta(currentState, 10, -math.inf, math.inf, True, end_time)
+    currentState = BC.BC_state(INITIAL, BC.BLACK)
+    end_time = time.time() + 2 # in seconds
+
+    evaluated, move = alpha_beta(currentState, 5, -math.inf, math.inf, True, end_time)
     print("CONCLUSION: "+str(evaluated))
+    print("Move: "+str(move))
+
+    '''
+    nother = BC.BC_state(b2, BC.WHITE)
+    print("B1: "+str(staticEval(currentState)))
+    print("B2: "+str(staticEval(nother)))
+    policy[getStateHash(currentState)] = "a"
+    policy[getStateHash(b2)] = "b"
+    '''

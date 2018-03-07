@@ -1,12 +1,12 @@
 
 '''BaroqueGameMaster.py
-Formerly TimedGameMaster.py which was based on GameMaster.py which in turn is 
+Formerly TimedGameMaster.py which was based on GameMaster.py which in turn is
  based on code from RunKInARow.py
 
 S. Tanimoto, October 30, 2017.
  Status: Works with the "PlayerSkeleton" agents.
  Has support for validation of moves, when that module becomes available.
- 
+
 '''
 VERSION = '0.8-BETA'
 
@@ -17,7 +17,7 @@ TIME_PER_MOVE = 0.5 # default time limit is half a second.
 TURN_LIMIT = 5   # Good for testing.
 #TURN_LIMIT = 100 # Terminates runaway games.
 if len(sys.argv) > 1:
-    import importlib    
+    import importlib
     player1 = importlib.import_module(sys.argv[1])
     player2 = importlib.import_module(sys.argv[2])
     if len(sys.argv) > 3:
@@ -38,7 +38,7 @@ CURRENT_PLAYER = BC.WHITE
 
 FINISHED = False
 def runGame():
-    # Set up for the match, and report on its details: 
+    # Set up for the match, and report on its details:
     currentState = BC.BC_state()
     print('**** Baroque Chess Gamemaster v'+VERSION+' *****')
     print('The Gamemaster says, "Players, introduce yourselves."')
@@ -61,7 +61,7 @@ def runGame():
         report = 'Congratulations to Player 1 ('+player1.nickname()+')!'
         print(report)
         return
-    
+
     print('\nThe Gamemaster says, "Let\'s Play!"\n')
     print('The initial state is...')
 
@@ -121,24 +121,24 @@ def runGame():
                 if answer.lower()=='y': WINNER='DRAW'
                 else: WINNER=other_side
                 FINISHED = True; break
-                
+
         # Some move was returned, so let's find out if it was valid.
         try:
           move, newState = moveAndState
           startsq, endsq = move
           i,j=startsq
           ii,jj=endsq
+          print(side+"'s move: the "+BC.CODE_TO_INIT[currentState.board[i][j]]+\
+            " at ("+str(i)+", "+str(j)+") to ("+str(ii)+", "+str(jj)+").")
         except Exception as e:
            print("The moveAndState value did not have the proper form of [move, newState] or")
            print("the move did not have the proper form such as ((3, 7), (5, 7)).")
            WINNER = other_side
            FINISHED = True;
-        print(side+"'s move: the "+BC.CODE_TO_INIT[currentState.board[i][j]]+\
-              " at ("+str(i)+", "+str(j)+") to ("+str(ii)+", "+str(jj)+").")
-        
+
         if VALIDATE_MOVES:
             (status, result)=V.validate(move, currentState, newState)
-            
+
             if not status:
                 print("Illegal move by "+side)  # Returned state is:\n" + str(currentState))
                 print(result)
@@ -181,9 +181,9 @@ def runGame():
 import sys
 import time
 def timeout(func, args=(), kwargs={}, timeout_duration=1, default=None):
-    '''This function will spawn a thread and run the given function using the args, kwargs and 
-    return the given default value if the timeout_duration is exceeded 
-    ''' 
+    '''This function will spawn a thread and run the given function using the args, kwargs and
+    return the given default value if the timeout_duration is exceeded
+    '''
     import threading
     class PlayerThread(threading.Thread):
         def __init__(self):
@@ -193,8 +193,10 @@ def timeout(func, args=(), kwargs={}, timeout_duration=1, default=None):
             try:
                 self.result = func(*args, **kwargs)
             except Exception as e:
-                print("Seems there was an exception during play by "+CURRENT_PLAYER+":\n"+str(e))
+                side = "BLACK" if CURRENT_PLAYER == 0 else "WHITE"
+                print("Seems there was an exception during play by "+side+":\n"+str(e))
                 print(sys.exc_info())
+                print("MESSAGE: "+e.message)
                 self.result = default
 
     pt = PlayerThread()
@@ -205,10 +207,11 @@ def timeout(func, args=(), kwargs={}, timeout_duration=1, default=None):
     diff = ended_at - started_at
     print("Time used in makeMove: %0.4f seconds out of " % diff, timeout_duration)
     if pt.isAlive():
+        side = "BLACK" if CURRENT_PLAYER == 0 else "WHITE"
         print("Took too long.")
         print("We are now terminating the game.")
-        print("Player "+CURRENT_PLAYER+" loses.")
-        if USE_HTML: gameToHTML.reportResult("Player "+CURRENT_PLAYER+" took too long (%04f seconds) and thus loses." % diff)
+        print("Player "+side+" loses.")
+        if USE_HTML: gameToHTML.reportResult("Player "+side+" took too long (%04f seconds) and thus loses." % diff)
         if USE_HTML: gameToHTML.endHTML()
         exit()
     else:

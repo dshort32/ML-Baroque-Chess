@@ -1,12 +1,12 @@
 
 
-import new_succ as bcs
+import BC_state_etc as bcs
 
 def winTester(s):
   possibleWin = "No win"
   black_king_detected = False
   white_king_detected = False
-  '''Scan the board looking for any king  
+  '''Scan the board looking for any king
   and return a win for one player if the opponent
   has no king.'''
   b = s.board
