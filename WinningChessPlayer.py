@@ -9,7 +9,7 @@ import BC_state_etc as BC
 import GenericBaroqueChessAgent as Agent
 
 PIECE_TO_VAL = {0: 0, 2:10, 3:10, 4:30, 5:30, 6:40, 7:40, 8:80, 9:80,
-  10:80, 11:80, 12:1000, 13:1000, 14:80, 15:80}
+  10:80, 11:80, 12:10000, 13:10000, 14:80, 15:80}
 
 def makeMove(currentState, currentRemark, timelimit):
     end_time = time.time() + timelimit - 0.05 # in seconds
@@ -72,6 +72,12 @@ def staticEval(state):
     '''An enemy piece is -1 and my own piece is +1'''
     turn = state.whose_move
     static_val = 0
+
+    connectivity = 0
+    frozen = 0
+    mobility = 0
+    king_safety = 0
+
     for row in state.board:
         for piece in row:
             val = PIECE_TO_VAL[piece]
