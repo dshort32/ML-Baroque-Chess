@@ -17,14 +17,10 @@ def move_piece(currentState, move, capture_mode=True):
 
     start, end = move
     piece = next_state.board[start[0]][start[1]]
-    # if piece == 3 and end[0] == 7 and end[1] == 2:
-    #    print("----------------------------------------------------THIS")
     next_state.board[start[0]][start[1]] = 0
     next_state.board[end[0]][end[1]] = piece
     if capture_mode:
         removed_pieces = remove_captured(next_state, move)
-        # if len(removed_pieces) != 0:
-        #    print("removed: "+str(removed_pieces))
     return next_state
 
 def remove_captured(state_to_update, move):
@@ -158,6 +154,23 @@ def available_moves(currentState):
                 recursive_find_moves(initialStateCopied, currPos, currPos, -1, 0, available_move_list)
 
     return available_move_list
+
+def order(state, moves_list):
+    dictionary = {}
+    for move in moves_list:
+        newState = move_piece(state, move)
+        hashed = getStateHash(newState)
+        dictionary[len(available_moves(newState))] = move
+    newList = []
+    mobility = sorted(dictionary.keys())
+    for m  in mobility:
+        newList.append(dictionary[m])
+    return newList
+
+
+def getStateHash(state):
+    return (str(state)).__hash__()
+
 
 def isFrozen(state, position):
     opponent = 1 - state.whose_move

@@ -1,4 +1,3 @@
-
 '''BaroqueGameMaster.py
 Formerly TimedGameMaster.py which was based on GameMaster.py which in turn is
  based on code from RunKInARow.py
