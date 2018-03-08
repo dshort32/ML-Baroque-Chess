@@ -40,6 +40,8 @@ def makeMove(currentState, currentRemark, timelimit):
 def alpha_beta(current_state, depth, alpha, beta, max_player, end_time):
     moves = Agent.available_moves(current_state)
     # moves = Agent.order(current_state, moves)
+    if len(moves) == 0:
+        return None
     best_move = moves[0]
     if time.time() > end_time or depth == 0 or len(moves) == 0:
         return (staticEval(current_state), best_move)
