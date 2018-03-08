@@ -14,7 +14,7 @@ VERSION = '0.8-BETA'
 import sys
 TIME_PER_MOVE = 0.5 # default time limit is half a second.
 # TURN_LIMIT = 5   # Good for testing.
-TURN_LIMIT = 100 # Terminates runaway games.
+TURN_LIMIT = 1000 # Terminates runaway games.
 if len(sys.argv) > 1:
     import importlib
     player1 = importlib.import_module(sys.argv[1])
@@ -37,13 +37,15 @@ CURRENT_PLAYER = BC.WHITE
 
 FINISHED = False
 def runGame():
+    global WIN_COUNT, LOSS_COUNT, WIN_TURN_SUM, LOSS_TURN_SUM
     # Set up for the match, and report on its details:
     currentState = BC.BC_state()
+    '''
     print('**** Baroque Chess Gamemaster v'+VERSION+' *****')
     print('The Gamemaster says, "Players, introduce yourselves."')
     print(' (Playing WHITE:) '+player1.introduce())
     print(' (Playing BLACK:) '+player2.introduce())
-
+    '''
     try:
         p1comment = player1.prepare(player2.nickname())
     except:
@@ -61,8 +63,8 @@ def runGame():
         print(report)
         return
 
-    print('\nThe Gamemaster says, "Let\'s Play!"\n')
-    print('The initial state is...')
+    # print('\nThe Gamemaster says, "Let\'s Play!"\n')
+    # print('The initial state is...')
 
     currentRemark = "The game is starting."
 
@@ -72,7 +74,7 @@ def runGame():
     FINISHED = False
     WINNER = "not yet known"
     turnCount = 1
-    print(currentState)
+    # print(currentState)
     while not FINISHED:
         # Whoever's turn it is, well, move!
         who = currentState.whose_move
@@ -127,8 +129,10 @@ def runGame():
           startsq, endsq = move
           i,j=startsq
           ii,jj=endsq
+          '''
           print(side+"'s move: the "+BC.CODE_TO_INIT[currentState.board[i][j]]+\
             " at ("+str(i)+", "+str(j)+") to ("+str(ii)+", "+str(jj)+").")
+        '''
         except Exception as e:
            print("The moveAndState value did not have the proper form of [move, newState] or")
            print("the move did not have the proper form such as ((3, 7), (5, 7)).")
@@ -152,29 +156,35 @@ def runGame():
                 print(result)
 
         moveReport = "Turn "+str(turnCount)+": Move is by "+side
-        print(moveReport)
+        # print(moveReport)
         utteranceReport = name +' says: '+currentRemark
-        print(utteranceReport)
+        # print(utteranceReport)
         currentState = newState
         possibleWin = winTester(currentState)
         if possibleWin != "No win":
             WINNER = side
             FINISHED = True
-            print(currentState)
-            print(possibleWin)
+            # print(currentState)
+            # print(possibleWin)
             break
-        print(currentState)
+        # print(currentState)
         turnCount += 1
         if turnCount > TURN_LIMIT:
             FINISHED=True
             print("TURN_LIMIT exceeded! ("+str(TURN_LIMIT)+")")
             break
 
-    print("Game over.")
+    # print("Game over.")
     if (WINNER=="not yet known") or (WINNER == "DRAW"):
       print("The outcome is a DRAW.  Nobody wins.")
     else:
-      print("Congratulations to the winner: "+WINNER)
+      if WINNER == "WHITE":
+          WIN_COUNT += 1
+          WIN_TURN_SUM += turnCount
+      elif WINNER == "BLACK":
+          LOSS_COUNT += 1
+          LOSS_TURN_SUM += turnCount
+      print("Congratulations to the winner: "+WINNER+" "+ str(turnCount))
 
 
 import sys
@@ -204,7 +214,7 @@ def timeout(func, args=(), kwargs={}, timeout_duration=1, default=None):
     pt.join(timeout_duration)
     ended_at = time.time()
     diff = ended_at - started_at
-    print("Time used in makeMove: %0.4f seconds out of " % diff, timeout_duration)
+    # print("Time used in makeMove: %0.4f seconds out of " % diff, timeout_duration)
     if pt.isAlive():
         side = "BLACK" if CURRENT_PLAYER == 0 else "WHITE"
         print("Took too long.")
@@ -217,4 +227,14 @@ def timeout(func, args=(), kwargs={}, timeout_duration=1, default=None):
         #print("Within the time limit -- nice!")
         return pt.result
 
-runGame()
+player1.loadInfo()
+WIN_COUNT = 0
+WIN_TURN_SUM = 0
+LOSS_COUNT = 0
+LOSS_TURN_SUM = 0
+for nu in range(100):
+    runGame()
+print("WIN count: "+str(WIN_COUNT))
+print("WIN turn aver.: "+str(WIN_TURN_SUM/WIN_COUNT))
+print("WIN LOSS_COUNT: "+str(LOSS_COUNT))
+print("LOSS turn aver.: "+str(LOSS_TURN_SUM/LOSS_COUNT))
